@@ -14,3 +14,9 @@
 - 완료 항목 일괄 삭제
 - 브라우저(localStorage)에 자동 저장
 - 다크 모드 자동 지원
+
+---
+
+# 땅따먹기 월드
+
+`world-game/` 폴더에 있는 세계 지도 땅따먹기 전략 게임입니다. `world-game/index.html` 을 브라우저로 열면 바로 할 수 있어요. 자세한 내용은 [world-game/README.md](world-game/README.md)를 보세요.

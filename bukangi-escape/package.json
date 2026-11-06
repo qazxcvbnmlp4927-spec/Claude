@@ -1,0 +1,8 @@
+{
+  "name": "bukangi-escape",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node tools/bundle.mjs"
+  }
+}

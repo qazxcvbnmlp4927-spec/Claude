@@ -74,7 +74,7 @@ const ui = {
     const g = game;
     const si = clamp(g.stage, 0, STAGES.length - 1);
     $('overWhere').textContent = `${MODES[g.mode].label} · ${si + 1}구간 ${STAGES[si].name}에서`;
-    const hard = g.mode === 'hard';
+    const hard = g.mode === 'hard' || g.mode === 'hell';
     $('retryBtn').hidden = hard;
     $('restartBtn').className = hard ? 'btn primary' : 'btn ghost';
     ui.stats($('overStats'), [
@@ -105,7 +105,7 @@ const ui = {
   refreshTitle() {
     loadBest();
     $('bestLine').textContent = game.best > 0 ? `${MODES[game.mode].label} 최고 점수 ${fmt(game.best)}` : '';
-    for (const [id, m] of [['modeEasy', 'easy'], ['modeNormal', 'normal'], ['modeHard', 'hard']]) $(id).setAttribute('aria-checked', String(game.mode === m));
+    for (const [id, m] of [['modeEasy', 'easy'], ['modeNormal', 'normal'], ['modeHard', 'hard'], ['modeHell', 'hell']]) $(id).setAttribute('aria-checked', String(game.mode === m));
     ui.soundLabels();
   },
   soundLabels() {
@@ -204,6 +204,7 @@ function bindInput() {
   on('pauseSound', toggleSound);
   on('modeEasy', () => { game.mode = 'easy'; store.set('mode', 'easy'); ui.refreshTitle(); audio.ensure(); audio.sfx('click'); });
   on('modeNormal', () => { game.mode = 'normal'; store.set('mode', 'normal'); ui.refreshTitle(); audio.ensure(); audio.sfx('click'); });
+  on('modeHell', () => { game.mode = 'hell'; store.set('mode', 'hell'); ui.refreshTitle(); audio.ensure(); audio.sfx('click'); });
   on('modeHard', () => { game.mode = 'hard'; store.set('mode', 'hard'); ui.refreshTitle(); audio.ensure(); audio.sfx('click'); });
   on('pauseBtn', pauseGame);
   on('resumeBtn', resumeGame);

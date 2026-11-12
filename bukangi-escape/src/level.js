@@ -71,8 +71,15 @@ function scatter(c, type, n, d0, span, minGap, extra, lim = c.half - 24) {
   }
   return placed;
 }
-const gapW = (c) => 104 - c.t * 22 + (c.mode === 'easy' ? 24 : c.mode === 'hard' ? -16 : 0);
-const fewer = (c, n) => (c.mode === 'easy' ? Math.max(2, n - 1) : c.mode === 'hard' ? n + 1 : n);
+const LV = {
+  easy: { gap: 24, more: -1, narrow: 14, inner: -14 },
+  normal: { gap: 0, more: 0, narrow: 0, inner: 0 },
+  hard: { gap: -16, more: 1, narrow: -8, inner: 14 },
+  hell: { gap: -24, more: 2, narrow: -12, inner: 22 },
+};
+const tough = (c) => c.mode === 'hard' || c.mode === 'hell';
+const gapW = (c) => 104 - c.t * 22 + LV[c.mode].gap;
+const fewer = (c, n) => Math.max(2, n + LV[c.mode].more);
 
 const PAT = {
   fish(c) {
@@ -101,7 +108,7 @@ const PAT = {
     const dir = c.R() < 0.5 ? -1 : 1;
     c.ents.push(mk('kayak', (c.R() - 0.5) * c.half, dd, { kind: 'kayak', hw: 24, hh: 8, vx: dir * (48 + c.t * 50), ph: c.R() * TAU }));
     let end = dd + 200;
-    if (c.t > (c.mode === 'hard' ? 0.15 : 0.45)) {
+    if (c.t > (tough(c) ? 0.15 : 0.45)) {
       c.ents.push(mk('kayak', (c.R() - 0.5) * c.half, dd + 160, { kind: 'kayak', hw: 24, hh: 8, vx: -dir * (55 + c.t * 40), ph: c.R() * TAU }));
       end += 160;
     }
@@ -119,7 +126,7 @@ const PAT = {
   narrow(c) {
     if (c.room < 700) return PAT.trash(c);
     const L = 560;
-    const nh = 92 + (c.mode === 'easy' ? 14 : c.mode === 'hard' ? -8 : 0);
+    const nh = 92 + LV[c.mode].narrow;
     c.bank.push(B(c.d, c.half), B(c.d + 130, nh), B(c.d + L - 130, nh), B(c.d + L, c.half));
     addFish(c, c.d + 150, 6, 0, nh * 0.45, 44);
     if (c.t > 0.3) {
@@ -134,7 +141,7 @@ const PAT = {
     if (c.room < 760) return PAT.drums(c);
     const side = c.R() < 0.5 ? -1 : 1;
     const L = 480 + c.R() * 140;
-    const inner = 40 + (c.mode === 'easy' ? -14 : c.mode === 'hard' ? 14 : 0);
+    const inner = 40 + LV[c.mode].inner;
     const nb = (d) => {
       const p = B(d, c.half);
       if (side < 0) p.l = -inner; else p.r = inner;
@@ -152,7 +159,7 @@ const PAT = {
     const dir = c.R() < 0.5 ? 1 : -1;
     c.ents.push(mk('boat', 0, dd, { kind: 'tug', hw: 40, hh: 15, speed: 150 + c.t * 80 + c.R() * 30, dir, active: false }));
     let end = dd + 200;
-    if (c.t > (c.mode === 'hard' ? 0.1 : 0.4) && c.R() < (c.mode === 'hard' ? 0.85 : 0.6)) {
+    if (c.t > (tough(c) ? 0.1 : 0.4) && c.R() < (tough(c) ? 0.85 : 0.6)) {
       c.ents.push(mk('boat', 0, dd + 190, { kind: 'tug', hw: 40, hh: 15, speed: 160 + c.t * 70, dir: -dir, active: false }));
       end += 190;
     }
@@ -160,7 +167,7 @@ const PAT = {
     return end;
   },
   anchor(c) {
-    const n = c.mode === 'hard' ? 3 + (c.t > 0.5 ? 1 : 0) : c.t > 0.5 && c.mode !== 'easy' ? 3 : 2;
+    const n = tough(c) ? 3 + (c.t > 0.5 ? 1 : 0) + (c.mode === 'hell' ? 1 : 0) : c.t > 0.5 && c.mode !== 'easy' ? 3 : 2;
     for (let i = 0; i < n; i++) {
       c.ents.push(mk('anchor', 0, c.d + 160 + i * 170, { state: 'wait', r: 30, aim: (c.R() - 0.5) * 40 }));
     }
@@ -177,7 +184,8 @@ const PAT = {
     const dd = c.d + 170;
     const w = gapW(c);
     const gc = (c.R() * 2 - 1) * (c.half - w / 2 - 22);
-    c.ents.push(mk('net', 0, dd, { gaps: [{ c0: gc, w, amp: 0, spd: 0, ph: 0 }], thick: 10 }));
+    const wob = c.mode === 'hell' ? Math.min(34, c.half - Math.abs(gc) - w / 2 - 20) : 0;
+    c.ents.push(mk('net', 0, dd, { gaps: [{ c0: gc, w, amp: Math.max(0, wob), spd: 1.3, ph: c.R() * TAU }], thick: 10 }));
     addFish(c, dd - 90, 3, gc, 0, 45);
     return dd + 190;
   },
@@ -262,12 +270,12 @@ function buildLevel(seed, mode) {
   for (let si = 0; si < STAGES.length; si++) {
     const st = STAGES[si];
     if (si > 0) bank.push(B(st.start, STAGES[si - 1].half), B(st.start + 260, st.half));
-    const c = { R, ents, bank, half: st.half, mode, st, d: st.start + (si === 0 ? 520 : 330), t: 0, room: 0, gold: mode === 'easy' ? 2 : 1, last: '' };
+    const c = { R, ents, bank, half: st.half, mode, st, d: st.start + (si === 0 ? 520 : 330), t: 0, room: 0, gold: mode === 'easy' ? 2 : mode === 'hell' ? 0 : 1, last: '' };
     while (c.d < st.end - 680) {
       c.t = (c.d - st.start) / st.len;
       c.room = st.end - 80 - c.d;
       const name = pickPattern(c);
-      c.d = PAT[name](c) + (mode === 'hard' ? 5 + R() * 25 : 30 + R() * 70 * (1 - c.t));
+      c.d = PAT[name](c) + (mode === 'hell' ? R() * 12 : mode === 'hard' ? 5 + R() * 25 : 30 + R() * 70 * (1 - c.t));
       c.last = name;
     }
   }

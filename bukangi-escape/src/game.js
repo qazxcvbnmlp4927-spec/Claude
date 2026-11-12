@@ -5,7 +5,7 @@ const shark = {
   tangle: null, face: 'normal', faceT: 0, bumpT: 0, noDashT: 0,
 };
 const game = {
-  state: 'title', mode: ['easy', 'normal', 'hard'].includes(store.get('mode', 'normal')) ? store.get('mode', 'normal') : 'normal', seed: 1,
+  state: 'title', mode: ['easy', 'normal', 'hard', 'hell'].includes(store.get('mode', 'normal')) ? store.get('mode', 'normal') : 'normal', seed: 1,
   camD: 0, time: 0, runTime: 0, speedNow: 0,
   score: 0, fish: 0, photos: 0, nears: 0, hits: 0,
   stage: -1, stageHurt: false, resumed: false, check: null,
@@ -17,6 +17,8 @@ const MODES = {
   easy: { hp: 5, speed: 0.88, mash: 6, mashT: 3.2, regen: 0.035, label: '쉬움' },
   normal: { hp: 3, speed: 1, mash: 8, mashT: 3.2, regen: 0.035, label: '보통' },
   hard: { hp: 1, speed: 1.2, mash: 12, mashT: 2.6, regen: 0.02, label: '어려움' },
+  // 지옥: 밤바다라 부캉이 주변만 보이고, 하트 1개, 40% 빠름, 닻 경고가 짧음
+  hell: { hp: 1, speed: 1.4, mash: 15, mashT: 2.4, regen: 0.012, label: '지옥', night: true, anchorWarn: 0.85 },
 };
 const bestKey = (m) => (m === 'normal' ? 'best' : 'best_' + m);
 function loadBest() { game.best = store.get(bestKey(game.mode), 0) | 0; }

@@ -83,9 +83,10 @@ function updateBoat(e, dt) {
 function updateAnchor(e, dt) {
   const g = game;
   if (e.state === 'wait') {
-    if (g.state === 'play' && e.d - shark.d < Math.max(80, g.speedNow) * 1.25 + 20) {
+    const warn = MODES[g.mode].anchorWarn || 1.2;
+    if (g.state === 'play' && e.d - shark.d < Math.max(80, g.speedNow) * (warn + 0.05) + 20) {
       const b = bankAt(e.d);
-      e.state = 'warn'; e.t = 0; e.dur = 1.2;
+      e.state = 'warn'; e.t = 0; e.dur = warn;
       e.x = clamp(shark.x + e.aim, b.l + 26, b.r - 26);
       audio.sfx('warn');
     }

@@ -365,6 +365,18 @@ function drawFx() {
   ctx.globalAlpha = 1;
 }
 
+// 지옥 모드: 밤바다. 부캉이 주변만 밝다
+function drawNight() {
+  const s = shark, y = SY(s.d), W = view.w / 2 + 40;
+  const r0 = 70, r1 = 250 + Math.sin(game.time * 1.7) * 8;
+  const gr = ctx.createRadialGradient(s.x, y - 40, r0, s.x, y - 40, r1);
+  gr.addColorStop(0, 'rgba(2,8,22,0)');
+  gr.addColorStop(0.55, 'rgba(2,8,22,0.55)');
+  gr.addColorStop(1, 'rgba(2,8,22,0.93)');
+  ctx.fillStyle = gr;
+  ctx.fillRect(-W, -40, W * 2, view.h + 80);
+}
+
 function render() {
   const g = game;
   const k = view.dpr * view.s;
@@ -405,6 +417,7 @@ function render() {
   for (const e of vis) if (e.type === 'ship') drawShip(e);
   for (const e of vis) if (e.type === 'light') drawLight(e);
   for (const e of vis) if (e.type === 'bridge') drawBridge(e);
+  if (MODES[g.mode].night && g.state !== 'title') drawNight();
   // 배가 들어오기 전 경고
   for (const e of vis) {
     if (e.type !== 'boat' || !e.active) continue;
@@ -416,7 +429,7 @@ function render() {
   // 화면 효과
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (g.flash > 0) { ctx.fillStyle = `rgba(255,60,80,${g.flash * 0.6})`; ctx.fillRect(0, 0, cvs.width, cvs.height); }
-  if ((g.state === 'play' || g.state === 'pause') && s.hp === 1) {
+  if ((g.state === 'play' || g.state === 'pause') && s.hp === 1 && s.maxHp > 1) {
     const a = 0.25 + 0.15 * Math.sin(g.time * 5);
     const gr = ctx.createRadialGradient(cvs.width / 2, cvs.height / 2, Math.min(cvs.width, cvs.height) * 0.35, cvs.width / 2, cvs.height / 2, Math.max(cvs.width, cvs.height) * 0.75);
     gr.addColorStop(0, 'rgba(255,40,70,0)'); gr.addColorStop(1, `rgba(255,40,70,${a})`);

@@ -9,7 +9,7 @@ const game = {
   camD: 0, time: 0, runTime: 0, speedNow: 0,
   score: 0, fish: 0, photos: 0, nears: 0, hits: 0,
   stage: -1, stageHurt: false, resumed: false, check: null,
-  shake: 0, flash: 0, photoT: 0, comboN: 0, comboT: 0, endT: 0, overT: 0,
+  shake: 0, flash: 0, photoT: 0, cur: null, curT: 4, comboN: 0, comboT: 0, endT: 0, overT: 0,
   best: 0,
 };
 // 난이도별 설정. 어려움(하드코어): 하트 1개, 20% 빠름, 이어 하기 없음
@@ -18,7 +18,8 @@ const MODES = {
   normal: { hp: 3, speed: 1, mash: 8, mashT: 3.2, regen: 0.035, label: '보통' },
   hard: { hp: 1, speed: 1.2, mash: 12, mashT: 2.6, regen: 0.02, label: '어려움' },
   // 지옥: 밤바다라 부캉이 주변만 보이고, 하트 1개, 40% 빠름, 닻 경고가 짧음
-  hell: { hp: 1, speed: 1.4, mash: 15, mashT: 2.4, regen: 0.012, label: '지옥', night: true, anchorWarn: 0.85 },
+  // 지옥: 밤바다(부캉이 주변만 보임), 옆으로 미는 해류, 돌진해도 무적 아님, 하트 1개, 55% 빠름
+  hell: { hp: 1, speed: 1.55, mash: 18, mashT: 2.4, regen: 0.01, label: '지옥', night: 205, anchorWarn: 0.7, noDashInv: true, current: true, boat: 1.25 },
 };
 const bestKey = (m) => (m === 'normal' ? 'best' : 'best_' + m);
 function loadBest() { game.best = store.get(bestKey(game.mode), 0) | 0; }
@@ -62,7 +63,7 @@ function startRun(fromCheck) {
   g.stage = ck ? ck.stage - 1 : -1;
   g.resumed = !!ck;
   g.stageHurt = false; g.speedNow = STAGES[ck ? ck.stage : 0].speed * 0.6;
-  g.shake = 0; g.flash = 0; g.photoT = 0; g.comboN = 0; g.comboT = 0; g.endT = 0;
+  g.shake = 0; g.flash = 0; g.photoT = 0; g.cur = null; g.curT = 4; g.comboN = 0; g.comboT = 0; g.endT = 0;
   fx.length = 0; texts.length = 0;
   input.keys.clear(); input.dragDX = 0; input.dragDY = 0; input.dashQ = false; input.mashQ = 0;
   g.state = 'play';
@@ -92,7 +93,7 @@ function tryDash() {
   if (s.tangle || s.dashT > 0.1) return;
   if (s.stamina < 1 / 3 - 1e-6) { textAdd(s.x, s.d + 44, '기운이 모자라요', '#a6c3cc', 13); return; }
   s.stamina -= 1 / 3;
-  s.dashT = 0.55; s.dashInv = 0.5;
+  s.dashT = 0.55; s.dashInv = MODES[game.mode].noDashInv ? 0 : 0.5;
   audio.sfx('dash');
   for (let i = 0; i < 8; i++) fxAdd('bubble', s.x + (Math.random() - 0.5) * 20, s.d - 20 - Math.random() * 20, (Math.random() - 0.5) * 30, -40, 0.7, 2 + Math.random() * 3);
 }
@@ -271,6 +272,7 @@ function updatePlay(dt) {
   scroll(dt);
   const si = stageIndexAt(s.d);
   if (si > g.stage) enterStage(si);
+  updateCurrent(dt);
   updateEnts(dt);
   collide();
   if (g.state !== 'play') return;
@@ -323,7 +325,7 @@ function updateFx(dt) {
     p.life -= dt;
     if (p.life <= 0) { fx.splice(i, 1); continue; }
     p.x += p.vx * dt; p.d += p.vd * dt;
-    p.vx *= 1 - dt * 2; p.vd *= 1 - dt * 2;
+    if (p.kind !== 'flow') { p.vx *= 1 - dt * 2; p.vd *= 1 - dt * 2; }
   }
   for (let i = texts.length - 1; i >= 0; i--) {
     const t = texts[i];
@@ -331,6 +333,32 @@ function updateFx(dt) {
     if (t.life <= 0) { texts.splice(i, 1); continue; }
     t.d += dt * 40;
   }
+}
+
+// 지옥 모드: 몇 초마다 옆으로 미는 해류가 분다 (0.9초 전에 예고)
+function updateCurrent(dt) {
+  const g = game, s = shark;
+  if (!MODES[g.mode].current) return;
+  if (!g.cur) {
+    g.curT -= dt;
+    if (g.curT <= 0) {
+      g.cur = { dir: Math.random() < 0.5 ? -1 : 1, warn: 0.9, t: 1.8 + Math.random() * 0.8, pow: 85 + Math.random() * 45 };
+      textAdd(0, s.d + 110, g.cur.dir > 0 ? '해류 →→' : '←← 해류', '#7fe3ff', 22);
+      audio.sfx('warn');
+    }
+    return;
+  }
+  const c = g.cur;
+  if (c.warn > 0) { c.warn -= dt; return; }
+  c.t -= dt;
+  if (!s.tangle) {
+    const b = bankAt(s.d);
+    s.x = clamp(s.x + c.dir * c.pow * dt, b.l + 14, b.r - 14);
+  }
+  if (Math.random() < dt * 30) {
+    fxAdd('flow', -c.dir * (view.w / 2 + 20), g.camD + Math.random() * view.h, c.dir * (380 + Math.random() * 160), 0, 1.1, 30 + Math.random() * 40);
+  }
+  if (c.t <= 0) { g.cur = null; g.curT = 3 + Math.random() * 3; }
 }
 
 // 처음 화면 뒤에서 혼자 헤엄치는 모습

@@ -60,7 +60,7 @@ function updateBoat(e, dt) {
   if (!e.active) {
     if (g.state !== 'play' && g.state !== 'ending') return;
     const { startX } = boatEdges(e);
-    const tBoat = Math.abs(startX - shark.x) / e.speed;
+    const tBoat = Math.abs(startX - shark.x) / (e.speed * (MODES[g.mode].boat || 1));
     const tShark = (e.d - shark.d) / Math.max(60, g.speedNow);
     if (e.d - g.camD < view.h + 120 && tShark <= tBoat + 0.25) {
       e.active = true;
@@ -70,7 +70,7 @@ function updateBoat(e, dt) {
     }
     return;
   }
-  e.x += e.dir * e.speed * dt;
+  e.x += e.dir * e.speed * (MODES[g.mode].boat || 1) * dt;
   e.warnT += dt;
   const { far } = boatEdges(e);
   if ((e.dir > 0 && e.x > far) || (e.dir < 0 && e.x < -far)) e.dead = true;

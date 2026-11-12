@@ -349,6 +349,7 @@ function drawFx() {
         ctx.closePath(); ctx.fill();
         break;
       }
+      case 'flow': ctx.strokeStyle = `rgba(170,235,255,${0.5 * Math.min(1, k * 2)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x, y); ctx.lineTo(p.x - Math.sign(p.vx) * p.r, y); ctx.stroke(); break;
       case 'streak': ctx.strokeStyle = `rgba(255,255,255,${0.55 * k})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x, y); ctx.lineTo(p.x, y + p.r); ctx.stroke(); break;
     }
   }
@@ -368,7 +369,7 @@ function drawFx() {
 // 지옥 모드: 밤바다. 부캉이 주변만 밝다
 function drawNight() {
   const s = shark, y = SY(s.d), W = view.w / 2 + 40;
-  const r0 = 70, r1 = 250 + Math.sin(game.time * 1.7) * 8;
+  const r1 = (MODES[game.mode].night || 250) + Math.sin(game.time * 1.7) * 8, r0 = r1 * 0.28;
   const gr = ctx.createRadialGradient(s.x, y - 40, r0, s.x, y - 40, r1);
   gr.addColorStop(0, 'rgba(2,8,22,0)');
   gr.addColorStop(0.55, 'rgba(2,8,22,0.55)');

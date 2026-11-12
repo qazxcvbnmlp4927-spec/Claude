@@ -75,7 +75,7 @@ const LV = {
   easy: { gap: 24, more: -1, narrow: 14, inner: -14 },
   normal: { gap: 0, more: 0, narrow: 0, inner: 0 },
   hard: { gap: -16, more: 1, narrow: -8, inner: 14 },
-  hell: { gap: -24, more: 2, narrow: -12, inner: 22 },
+  hell: { gap: -26, more: 3, narrow: -14, inner: 24 },
 };
 const tough = (c) => c.mode === 'hard' || c.mode === 'hell';
 const gapW = (c) => 104 - c.t * 22 + LV[c.mode].gap;

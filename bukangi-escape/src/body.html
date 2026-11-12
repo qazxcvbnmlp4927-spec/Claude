@@ -1,0 +1,118 @@
+<div id="app">
+  <canvas id="game" aria-label="부캉이의 북항시 탈출 게임 화면"></canvas>
+
+  <div id="hud" class="hud" hidden>
+    <div class="hud-row">
+      <div id="hearts" class="hearts" aria-label="남은 하트"></div>
+      <div class="route">
+        <div id="stageName" class="stage-name">1구간 · 친수공원 수로</div>
+        <div class="route-bar" aria-hidden="true">
+          <div id="routeFill" class="route-fill"></div>
+          <div class="route-ticks"><i></i><i></i><i></i></div>
+          <div id="routeMark" class="route-mark"></div>
+        </div>
+      </div>
+      <div class="hud-right">
+        <div id="score" class="score" aria-label="점수">0</div>
+        <button id="pauseBtn" class="icon-btn" type="button" aria-label="일시정지">
+          <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="4" y="3" width="4" height="14" rx="1.5"></rect><rect x="12" y="3" width="4" height="14" rx="1.5"></rect></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <button id="dashBtn" class="dash-btn" type="button" hidden aria-label="돌진"><span>돌진</span></button>
+
+  <div id="banner" class="banner" hidden aria-live="polite">
+    <small id="bannerSmall"></small>
+    <strong id="bannerBig"></strong>
+    <span id="bannerSub"></span>
+  </div>
+
+  <div id="mash" class="mash" hidden>
+    <strong>그물에 걸렸어요!</strong>
+    <span>화면을 마구 탭하세요 · 스페이스 연타</span>
+    <div class="mash-bar"><i id="mashFill"></i></div>
+  </div>
+
+  <section id="titleScreen" class="screen">
+    <div class="card title-card">
+      <p class="eyebrow">북항시 수로 탈출 작전</p>
+      <h1 class="title"><span class="t-small">부캉이의</span><span class="t-big">북항시 탈출</span></h1>
+      <p class="lede">수로에 들어온 흑상어 부캉이. 사랑은 듬뿍 받았지만 이제 넓은 바다로 돌아갈 시간이에요. 그물과 배를 피해 바다까지 헤엄쳐 주세요.</p>
+      <div class="mode" role="radiogroup" aria-label="난이도">
+        <button id="modeEasy" type="button" role="radio" aria-checked="false"><b>쉬움</b><small>하트 5개</small></button>
+        <button id="modeNormal" type="button" role="radio" aria-checked="true"><b>보통</b><small>하트 3개</small></button>
+        <button id="modeHard" type="button" role="radio" aria-checked="false"><b>어려움</b><small>하트 1개</small></button>
+        <button id="modeHell" type="button" role="radio" aria-checked="false"><b>지옥</b><small>밤바다 · 하트 1개</small></button>
+      </div>
+      <button id="startBtn" class="btn primary" type="button">헤엄치기 시작</button>
+      <div class="row">
+        <button id="howBtn" class="btn ghost" type="button">하는 법</button>
+        <button id="soundBtn" class="btn ghost" type="button">소리 켜짐</button>
+      </div>
+      <p id="bestLine" class="best"></p>
+      <p class="fine">2026년 9월 부산 북항 친수공원 수로에 나타난 흑상어 ‘부캉이’ 이야기에서 영감을 받아 만든 비공식 팬 게임이에요.</p>
+    </div>
+  </section>
+
+  <section id="howScreen" class="screen" hidden>
+    <div class="card">
+      <p class="eyebrow">하는 법</p>
+      <h2>바다까지 4구간</h2>
+      <ol class="route-list">
+        <li><b>친수공원 수로</b> 구경꾼 사이로 떠다니는 쓰레기와 카약을 피해요.</li>
+        <li><b>북항 부두</b> 예인선이 가로지르고 닻이 떨어져요.</li>
+        <li><b>방파제 그물길</b> 그물 사이 틈으로 빠져나가요.</li>
+        <li><b>넓은 바다</b> 기름띠와 해파리를 지나면 탈출 성공!</li>
+      </ol>
+      <dl class="keys">
+        <div><dt>움직이기</dt><dd>화면을 끌기 · 방향키 · WASD</dd></div>
+        <div><dt>돌진</dt><dd>돌진 버튼 · 스페이스. 기운 한 칸을 쓰고 잠깐 무적이 돼요. 그물은 못 뚫어요.</dd></div>
+        <div><dt>고등어</dt><dd>먹으면 점수와 기운이 올라요. 황금 고등어는 하트 +1.</dd></div>
+        <div><dt>그물</dt><dd>걸리면 마구 탭(스페이스 연타)해서 찢고 나와요.</dd></div>
+        <div><dt>어려움</dt><dd>하드코어 모드. 하트 1개, 20% 빠른 속도, 좁은 그물 틈, 더 많고 촘촘한 장애물, 그물 연타 12번. 지면 처음부터예요.</dd></div>
+        <div><dt>지옥</dt><dd>가장 어려워요. 밤바다라 부캉이 주변만 보이고, 55% 빠르고, 몇 초마다 옆으로 미는 해류가 불어요. 돌진해도 무적이 아니고, 그물 틈은 더 좁고 흔들려요. 닻 경고가 짧고 황금 고등어도 없어요. 그물 연타는 18번.</dd></div>
+        <div><dt>인증샷</dt><dd>수로 가장자리 가까이 헤엄치면 구경꾼이 사진을 찍어 줘요.</dd></div>
+      </dl>
+      <button id="howClose" class="btn primary" type="button">알겠어요</button>
+    </div>
+  </section>
+
+  <section id="pauseScreen" class="screen" hidden>
+    <div class="card small">
+      <p class="eyebrow">잠깐 쉬는 중</p>
+      <h2>일시정지</h2>
+      <button id="resumeBtn" class="btn primary" type="button">계속 헤엄치기</button>
+      <div class="row">
+        <button id="pauseSound" class="btn ghost" type="button">소리 켜짐</button>
+        <button id="quitBtn" class="btn ghost" type="button">처음 화면</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="overScreen" class="screen" hidden>
+    <div class="card small">
+      <p class="eyebrow" id="overWhere">1구간 · 친수공원 수로</p>
+      <h2>부캉이가 지쳤어요</h2>
+      <dl id="overStats" class="stats"></dl>
+      <button id="retryBtn" class="btn primary" type="button">이 구간부터 다시</button>
+      <div class="row">
+        <button id="restartBtn" class="btn ghost" type="button">처음부터</button>
+        <button id="overTitle" class="btn ghost" type="button">처음 화면</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="clearScreen" class="screen" hidden>
+    <div class="card small">
+      <p class="eyebrow">탈출 성공</p>
+      <h2>넓은 바다로 돌아왔어요!</h2>
+      <p id="rankLine" class="rank"></p>
+      <dl id="clearStats" class="stats"></dl>
+      <p id="clearBest" class="best"></p>
+      <button id="againBtn" class="btn primary" type="button">다시 하기</button>
+      <button id="clearTitle" class="btn ghost" type="button">처음 화면</button>
+    </div>
+  </section>
+</div>

@@ -5,13 +5,22 @@ const shark = {
   tangle: null, face: 'normal', faceT: 0, bumpT: 0, noDashT: 0,
 };
 const game = {
-  state: 'title', mode: store.get('mode', 'normal') === 'easy' ? 'easy' : 'normal', seed: 1,
+  state: 'title', mode: ['easy', 'normal', 'hard'].includes(store.get('mode', 'normal')) ? store.get('mode', 'normal') : 'normal', seed: 1,
   camD: 0, time: 0, runTime: 0, speedNow: 0,
   score: 0, fish: 0, photos: 0, nears: 0, hits: 0,
   stage: -1, stageHurt: false, resumed: false, check: null,
   shake: 0, flash: 0, photoT: 0, comboN: 0, comboT: 0, endT: 0, overT: 0,
-  best: store.get('best', 0) | 0,
+  best: 0,
 };
+// 난이도별 설정. 어려움(하드코어): 하트 1개, 20% 빠름, 이어 하기 없음
+const MODES = {
+  easy: { hp: 5, speed: 0.88, mash: 6, mashT: 3.2, regen: 0.035, label: '쉬움' },
+  normal: { hp: 3, speed: 1, mash: 8, mashT: 3.2, regen: 0.035, label: '보통' },
+  hard: { hp: 1, speed: 1.2, mash: 12, mashT: 2.6, regen: 0.02, label: '어려움' },
+};
+const bestKey = (m) => (m === 'normal' ? 'best' : 'best_' + m);
+function loadBest() { game.best = store.get(bestKey(game.mode), 0) | 0; }
+loadBest();
 const fx = [];
 const texts = [];
 const CHEERS = ['찰칵!', '부캉아!', '귀여워!', '잘 가~', '힘내!', '바다로 가자!', '인증샷!'];
@@ -32,7 +41,7 @@ function resetShark() {
     x: 0, off: 170, vx: 0, voff: 0, tilt: 0, swim: 0, wig: 0, stamina: 1, dashT: 0, inv: 1.2, dashInv: 0, slow: 0,
     tangle: null, face: 'normal', faceT: 0, bumpT: 0, noDashT: 0,
   });
-  shark.maxHp = game.mode === 'easy' ? 5 : 3;
+  shark.maxHp = MODES[game.mode].hp;
   shark.hp = shark.maxHp;
 }
 
@@ -129,7 +138,8 @@ function hurt(e, word, soft) {
 function tangle(e) {
   const s = shark, g = game;
   if (s.tangle || g.state !== 'play') return;
-  s.tangle = { e, need: g.mode === 'easy' ? 6 : 8, got: 0, t: 3.2, max: 3.2 };
+  const md = MODES[g.mode];
+  s.tangle = { e, need: md.mash, got: 0, t: md.mashT, max: md.mashT };
   s.face = 'hurt'; s.faceT = 99; s.dashT = 0; s.wig = 0;
   input.mashQ = 0;
   audio.sfx('tangle'); addShake(4); buzz(40);
@@ -167,7 +177,7 @@ function gameOver() {
 }
 function saveBest() {
   const g = game;
-  if (g.score > g.best) { g.best = Math.floor(g.score); store.set('best', g.best); return true; }
+  if (g.score > g.best) { g.best = Math.floor(g.score); store.set(bestKey(g.mode), g.best); return true; }
   return false;
 }
 
@@ -191,7 +201,7 @@ function updateShark(dt) {
   s.dashInv = Math.max(0, s.dashInv - dt);
   s.slow = Math.max(0, s.slow - dt);
   s.bumpT = Math.max(0, s.bumpT - dt);
-  s.stamina = Math.min(1, s.stamina + dt * 0.035);
+  s.stamina = Math.min(1, s.stamina + dt * MODES[game.mode].regen);
   if (s.tangle) {
     const tg = s.tangle;
     tg.t -= dt;
@@ -243,7 +253,7 @@ function updateShark(dt) {
 
 function scroll(dt) {
   const g = game, s = shark;
-  const base = STAGES[stageIndexAt(s.d)].speed * (g.mode === 'easy' ? 0.88 : 1);
+  const base = STAGES[stageIndexAt(s.d)].speed * MODES[g.mode].speed;
   let sp = base * (s.dashT > 0 ? 2.1 : 1) * (s.slow > 0 ? 0.55 : 1);
   if (s.tangle) sp = 0;
   g.speedNow = s.tangle ? 0 : lerp(g.speedNow, sp, 1 - Math.exp(-dt * 5));

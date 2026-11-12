@@ -164,8 +164,11 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .btn.primary { background: var(--buoy); color: var(--buoy-ink); box-shadow: 0 4px 0 color-mix(in srgb, var(--buoy) 55%, var(--ink)); }
 .btn.primary:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--buoy) 55%, var(--ink)); }
 .btn.ghost { background: var(--panel-2); color: var(--foam); }
-.mode { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; border-radius: 14px; background: var(--ink); }
-.mode button { min-height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--mist); font-family: var(--font-display); font-size: var(--step-0); }
+.mode { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 4px; border-radius: 14px; background: var(--ink); }
+.mode button { display: grid; gap: 1px; align-content: center; padding: 6px 4px; min-height: 52px; border: 0; border-radius: 10px; background: transparent; color: var(--mist); font-family: var(--font-display); font-size: var(--step-0); }
+.mode b { font-weight: 400; font-size: var(--step-1); }
+.mode small { font-family: var(--font-body); font-size: 0.72rem; }
+#modeHard[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--heart); }
 .mode button[aria-checked="true"] { background: var(--panel-2); color: var(--foam); box-shadow: inset 0 0 0 2px var(--sea); }
 .route-list { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; line-height: 1.5; }
 .route-list b { font-family: var(--font-display); font-weight: 400; color: var(--gold); margin-right: 4px; }

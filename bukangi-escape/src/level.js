@@ -71,8 +71,8 @@ function scatter(c, type, n, d0, span, minGap, extra, lim = c.half - 24) {
   }
   return placed;
 }
-const gapW = (c) => 104 - c.t * 22 + (c.mode === 'easy' ? 24 : 0);
-const fewer = (c, n) => Math.max(2, c.mode === 'easy' ? n - 1 : n);
+const gapW = (c) => 104 - c.t * 22 + (c.mode === 'easy' ? 24 : c.mode === 'hard' ? -16 : 0);
+const fewer = (c, n) => (c.mode === 'easy' ? Math.max(2, n - 1) : c.mode === 'hard' ? n + 1 : n);
 
 const PAT = {
   fish(c) {
@@ -101,7 +101,7 @@ const PAT = {
     const dir = c.R() < 0.5 ? -1 : 1;
     c.ents.push(mk('kayak', (c.R() - 0.5) * c.half, dd, { kind: 'kayak', hw: 24, hh: 8, vx: dir * (48 + c.t * 50), ph: c.R() * TAU }));
     let end = dd + 200;
-    if (c.t > 0.45) {
+    if (c.t > (c.mode === 'hard' ? 0.15 : 0.45)) {
       c.ents.push(mk('kayak', (c.R() - 0.5) * c.half, dd + 160, { kind: 'kayak', hw: 24, hh: 8, vx: -dir * (55 + c.t * 40), ph: c.R() * TAU }));
       end += 160;
     }
@@ -119,7 +119,7 @@ const PAT = {
   narrow(c) {
     if (c.room < 700) return PAT.trash(c);
     const L = 560;
-    const nh = 92 + (c.mode === 'easy' ? 14 : 0);
+    const nh = 92 + (c.mode === 'easy' ? 14 : c.mode === 'hard' ? -8 : 0);
     c.bank.push(B(c.d, c.half), B(c.d + 130, nh), B(c.d + L - 130, nh), B(c.d + L, c.half));
     addFish(c, c.d + 150, 6, 0, nh * 0.45, 44);
     if (c.t > 0.3) {
@@ -134,7 +134,7 @@ const PAT = {
     if (c.room < 760) return PAT.drums(c);
     const side = c.R() < 0.5 ? -1 : 1;
     const L = 480 + c.R() * 140;
-    const inner = 40 + (c.mode === 'easy' ? 14 : 0);
+    const inner = 40 + (c.mode === 'easy' ? -14 : c.mode === 'hard' ? 14 : 0);
     const nb = (d) => {
       const p = B(d, c.half);
       if (side < 0) p.l = -inner; else p.r = inner;
@@ -152,7 +152,7 @@ const PAT = {
     const dir = c.R() < 0.5 ? 1 : -1;
     c.ents.push(mk('boat', 0, dd, { kind: 'tug', hw: 40, hh: 15, speed: 150 + c.t * 80 + c.R() * 30, dir, active: false }));
     let end = dd + 200;
-    if (c.t > 0.4 && c.R() < 0.6) {
+    if (c.t > (c.mode === 'hard' ? 0.1 : 0.4) && c.R() < (c.mode === 'hard' ? 0.85 : 0.6)) {
       c.ents.push(mk('boat', 0, dd + 190, { kind: 'tug', hw: 40, hh: 15, speed: 160 + c.t * 70, dir: -dir, active: false }));
       end += 190;
     }
@@ -160,7 +160,7 @@ const PAT = {
     return end;
   },
   anchor(c) {
-    const n = c.t > 0.5 && c.mode !== 'easy' ? 3 : 2;
+    const n = c.mode === 'hard' ? 3 + (c.t > 0.5 ? 1 : 0) : c.t > 0.5 && c.mode !== 'easy' ? 3 : 2;
     for (let i = 0; i < n; i++) {
       c.ents.push(mk('anchor', 0, c.d + 160 + i * 170, { state: 'wait', r: 30, aim: (c.R() - 0.5) * 40 }));
     }
@@ -267,7 +267,7 @@ function buildLevel(seed, mode) {
       c.t = (c.d - st.start) / st.len;
       c.room = st.end - 80 - c.d;
       const name = pickPattern(c);
-      c.d = PAT[name](c) + 30 + R() * 70 * (1 - c.t);
+      c.d = PAT[name](c) + (mode === 'hard' ? 5 + R() * 25 : 30 + R() * 70 * (1 - c.t));
       c.last = name;
     }
   }

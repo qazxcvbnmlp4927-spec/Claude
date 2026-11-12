@@ -73,7 +73,10 @@ const ui = {
   showOver() {
     const g = game;
     const si = clamp(g.stage, 0, STAGES.length - 1);
-    $('overWhere').textContent = `${si + 1}구간 · ${STAGES[si].name}에서`;
+    $('overWhere').textContent = `${MODES[g.mode].label} · ${si + 1}구간 ${STAGES[si].name}에서`;
+    const hard = g.mode === 'hard';
+    $('retryBtn').hidden = hard;
+    $('restartBtn').className = hard ? 'btn primary' : 'btn ghost';
     ui.stats($('overStats'), [
       ['점수', fmt(g.score)],
       ['간 거리', `${Math.floor(clamp(shark.d / TOTAL, 0, 1) * 100)}%`],
@@ -81,12 +84,13 @@ const ui = {
       ['최고 점수', fmt(g.best)],
     ]);
     ui.show('overScreen');
+    if (hard) setTimeout(() => { try { $('restartBtn').focus({ preventScroll: true }); } catch (e) { /* 무시 */ } }, 40);
   },
   showClear(isBest) {
     const g = game;
     const sc = Math.floor(g.score);
     const rank = sc >= 11000 ? ['S', '전설의 흑상어'] : sc >= 8500 ? ['A', '북항의 스타'] : sc >= 6000 ? ['B', '씩씩한 상어'] : ['C', '꼬마 상어'];
-    $('rankLine').textContent = `${rank[0]}등급 · ${rank[1]}`;
+    $('rankLine').textContent = `${MODES[g.mode].label} · ${rank[0]}등급 · ${rank[1]}`;
     ui.stats($('clearStats'), [
       ['점수', fmt(sc)],
       ['걸린 시간', fmtTime(g.runTime)],
@@ -99,10 +103,9 @@ const ui = {
     ui.show('clearScreen');
   },
   refreshTitle() {
-    $('bestLine').textContent = game.best > 0 ? `최고 점수 ${fmt(game.best)}` : '';
-    const easy = game.mode === 'easy';
-    $('modeEasy').setAttribute('aria-checked', String(easy));
-    $('modeNormal').setAttribute('aria-checked', String(!easy));
+    loadBest();
+    $('bestLine').textContent = game.best > 0 ? `${MODES[game.mode].label} 최고 점수 ${fmt(game.best)}` : '';
+    for (const [id, m] of [['modeEasy', 'easy'], ['modeNormal', 'normal'], ['modeHard', 'hard']]) $(id).setAttribute('aria-checked', String(game.mode === m));
     ui.soundLabels();
   },
   soundLabels() {
@@ -201,6 +204,7 @@ function bindInput() {
   on('pauseSound', toggleSound);
   on('modeEasy', () => { game.mode = 'easy'; store.set('mode', 'easy'); ui.refreshTitle(); audio.ensure(); audio.sfx('click'); });
   on('modeNormal', () => { game.mode = 'normal'; store.set('mode', 'normal'); ui.refreshTitle(); audio.ensure(); audio.sfx('click'); });
+  on('modeHard', () => { game.mode = 'hard'; store.set('mode', 'hard'); ui.refreshTitle(); audio.ensure(); audio.sfx('click'); });
   on('pauseBtn', pauseGame);
   on('resumeBtn', resumeGame);
   on('quitBtn', toTitle);
